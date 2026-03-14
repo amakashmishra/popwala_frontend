@@ -16,6 +16,7 @@ const Auth = () => {
   const [devOtp, setDevOtp] = useState("");
   const [devResetToken, setDevResetToken] = useState("");
   const [verifyEmail, setVerifyEmail] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -37,6 +38,16 @@ const Auth = () => {
   const isVerify = viewMode === "verify";
   const isResetStep = Boolean(devResetToken || form.resetToken);
 
+  const setWebUserSession = (user, shouldRemember = true) => {
+    localStorage.removeItem("ceilocraft-user");
+    sessionStorage.removeItem("ceilocraft-user");
+    if (shouldRemember) {
+      localStorage.setItem("ceilocraft-user", JSON.stringify(user));
+      return;
+    }
+    sessionStorage.setItem("ceilocraft-user", JSON.stringify(user));
+  };
+
   const updateForm = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
@@ -50,7 +61,7 @@ const Auth = () => {
         .me()
         .then((data) => {
           if (data?.user) {
-            localStorage.setItem("ceilocraft-user", JSON.stringify(data.user));
+            setWebUserSession(data.user, true);
           }
           toast.success("Google login successful");
           navigate("/dashboard", { replace: true });
@@ -106,10 +117,11 @@ const Auth = () => {
     const loginData = await authApi.login({
       identifier: form.identifier.trim(),
       password: form.password,
+      rememberMe,
     });
 
     if (loginData?.user) {
-      localStorage.setItem("ceilocraft-user", JSON.stringify(loginData.user));
+      setWebUserSession(loginData.user, rememberMe);
     }
 
     toast.success("Signed in successfully");
@@ -316,6 +328,18 @@ const Auth = () => {
                   </button>
                 </div>
               </div>
+            )}
+
+            {isLogin && (
+              <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="h-4 w-4 accent-[hsl(var(--primary))]"
+                />
+                Remember Me
+              </label>
             )}
 
             {isForgot && (
