@@ -18,8 +18,36 @@ const getPortalLoginPath = () => {
   return null;
 };
 
+const getPortalRefreshPath = () => {
+  const currentPath = window.location.pathname || "";
+  if (currentPath.startsWith("/admin")) return "/admin/auth/refresh-token";
+  if (currentPath.startsWith("/architect")) return "/architect/auth/refresh-token";
+  if (currentPath.startsWith("/contractor")) return "/contractor/auth/refresh-token";
+  return null;
+};
+
 const isLoginRequestPath = (path = "") =>
-  path.includes("/auth/login") || path.includes("/auth/forgot-password") || path.includes("/auth/reset-password");
+  path.includes("/auth/login") ||
+  path.includes("/auth/forgot-password") ||
+  path.includes("/auth/reset-password") ||
+  path.includes("/auth/refresh-token");
+
+const refreshPortalToken = async () => {
+  const refreshPath = getPortalRefreshPath();
+  if (!refreshPath) return false;
+
+  const response = await fetch(`${API_BASE_URL}${refreshPath}`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({}),
+  });
+
+  const body = await parseJsonSafe(response);
+  return Boolean(response.ok && body?.success);
+};
 
 const handleUnauthorizedRedirect = (path, body) => {
   const errorCode = body?.errorCode || "";
@@ -35,7 +63,7 @@ const handleUnauthorizedRedirect = (path, body) => {
   }
 };
 
-const request = async (path, options = {}) => {
+const request = async (path, options = {}, retryOnUnauthorized = true) => {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     credentials: "include",
     headers: {
@@ -49,6 +77,12 @@ const request = async (path, options = {}) => {
 
   if (!response.ok || !body?.success) {
     if (response.status === 401) {
+      if (retryOnUnauthorized && !isLoginRequestPath(path)) {
+        const refreshed = await refreshPortalToken();
+        if (refreshed) {
+          return request(path, options, false);
+        }
+      }
       handleUnauthorizedRedirect(path, body);
     }
     throw new Error(body?.message || "Request failed");
@@ -111,7 +145,11 @@ export const adminApi = {
     const email = payload.email || payload.identifier;
     return request("/admin/auth/login", {
       method: "POST",
-      body: JSON.stringify({ email, password: payload.password }),
+      body: JSON.stringify({
+        email,
+        password: payload.password,
+        rememberMe: Boolean(payload.rememberMe),
+      }),
     });
   },
 
