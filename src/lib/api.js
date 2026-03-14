@@ -1,3 +1,5 @@
+import { clearPortalSession } from "@/lib/portalAuth";
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/v1";
 
 const parseJsonSafe = async (response) => {
@@ -5,6 +7,31 @@ const parseJsonSafe = async (response) => {
     return await response.json();
   } catch (error) {
     return null;
+  }
+};
+
+const getPortalLoginPath = () => {
+  const currentPath = window.location.pathname || "";
+  if (currentPath.startsWith("/admin")) return "/admin/login";
+  if (currentPath.startsWith("/architect")) return "/architect/login";
+  if (currentPath.startsWith("/contractor")) return "/contractor/login";
+  return null;
+};
+
+const isLoginRequestPath = (path = "") =>
+  path.includes("/auth/login") || path.includes("/auth/forgot-password") || path.includes("/auth/reset-password");
+
+const handleUnauthorizedRedirect = (path, body) => {
+  const errorCode = body?.errorCode || "";
+  if (errorCode !== "UNAUTHORIZED") return;
+  if (isLoginRequestPath(path)) return;
+
+  const loginPath = getPortalLoginPath();
+  if (!loginPath) return;
+
+  clearPortalSession();
+  if (window.location.pathname !== loginPath) {
+    window.location.replace(loginPath);
   }
 };
 
@@ -21,6 +48,9 @@ const request = async (path, options = {}) => {
   const body = await parseJsonSafe(response);
 
   if (!response.ok || !body?.success) {
+    if (response.status === 401) {
+      handleUnauthorizedRedirect(path, body);
+    }
     throw new Error(body?.message || "Request failed");
   }
 
@@ -158,6 +188,40 @@ export const adminApi = {
 
   deleteContractor(contractorId) {
     return request(`/admin/contractors/${contractorId}`, {
+      method: "DELETE",
+    });
+  },
+
+  listArchitects({ search = "", status, page = 1, limit = 20 } = {}) {
+    const query = new URLSearchParams();
+    if (search) query.set("search", search);
+    if (status) query.set("status", status);
+    if (page) query.set("page", String(page));
+    if (limit) query.set("limit", String(limit));
+
+    return request(`/admin/architects?${query.toString()}`);
+  },
+
+  createArchitect(payload) {
+    return request("/admin/architects", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  getArchitect(architectId) {
+    return request(`/admin/architects/${architectId}`);
+  },
+
+  updateArchitect(architectId, payload) {
+    return request(`/admin/architects/${architectId}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  deleteArchitect(architectId) {
+    return request(`/admin/architects/${architectId}`, {
       method: "DELETE",
     });
   },

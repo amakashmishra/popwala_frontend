@@ -23,6 +23,7 @@ import CatalogManager from "@/admin/pages/CatalogManager";
 import PlaceholderPage from "@/admin/pages/PlaceholderPage";
 import UsersPage from "@/admin/pages/UsersPage";
 import ContractorsPage from "@/admin/pages/ContractorsPage";
+import ArchitectsPage from "@/admin/pages/ArchitectsPage";
 import AdminLogin from "@/admin/pages/AdminLogin";
 import PortalRouteGuard from "@/components/portal/PortalRouteGuard";
 import ArchitectLayout from "@/architect/components/ArchitectLayout";
@@ -70,7 +71,7 @@ const App = () => (
               <Route path="categories" element={<CatalogManager />} />
               <Route path="styles" element={<CatalogManager />} />
               <Route path="contractors" element={<ContractorsPage />} />
-              <Route path="architects" element={<PlaceholderPage />} />
+              <Route path="architects" element={<ArchitectsPage />} />
               <Route path="users" element={<UsersPage />} />
               <Route path="leads" element={<PlaceholderPage />} />
               <Route path="projects" element={<PlaceholderPage />} />
