@@ -5,6 +5,7 @@ import {
   Layers,
   Grid3X3,
   Paintbrush,
+  Images,
   HardHat,
   Ruler,
   Users,
@@ -33,6 +34,7 @@ const navSections = [
       { title: "Product Types", url: "/admin/product-types", icon: Layers },
       { title: "Categories", url: "/admin/categories", icon: Grid3X3 },
       { title: "Styles", url: "/admin/styles", icon: Paintbrush },
+      { title: "Website Banners", url: "/admin/banners", icon: Images },
     ],
   },
   {
@@ -55,7 +57,6 @@ const navSections = [
   {
     label: "Content",
     items: [
-      { title: "Banners", url: "/admin/banners", icon: Image },
       { title: "Pages", url: "/admin/pages", icon: FileText },
       { title: "Ads", url: "/admin/ads", icon: Megaphone },
     ],

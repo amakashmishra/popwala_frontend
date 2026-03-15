@@ -20,6 +20,7 @@ import AdminDashboard from "@/admin/pages/AdminDashboard";
 import DesignList from "@/admin/pages/DesignList";
 import DesignForm from "@/admin/pages/DesignForm";
 import CatalogManager from "@/admin/pages/CatalogManager";
+import WebsiteBannersPage from "@/admin/pages/WebsiteBannersPage";
 import PlaceholderPage from "@/admin/pages/PlaceholderPage";
 import UsersPage from "@/admin/pages/UsersPage";
 import ContractorsPage from "@/admin/pages/ContractorsPage";
@@ -77,7 +78,7 @@ const App = () => (
               <Route path="projects" element={<PlaceholderPage />} />
               <Route path="pricing" element={<PlaceholderPage />} />
               <Route path="reviews" element={<PlaceholderPage />} />
-              <Route path="banners" element={<PlaceholderPage />} />
+              <Route path="banners" element={<WebsiteBannersPage />} />
               <Route path="pages" element={<PlaceholderPage />} />
               <Route path="ads" element={<PlaceholderPage />} />
               <Route path="reports" element={<PlaceholderPage />} />

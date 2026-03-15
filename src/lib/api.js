@@ -64,12 +64,17 @@ const handleUnauthorizedRedirect = (path, body) => {
 };
 
 const request = async (path, options = {}, retryOnUnauthorized = true) => {
+  const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
+  const headers = isFormData
+    ? { ...(options.headers || {}) }
+    : {
+        "Content-Type": "application/json",
+        ...(options.headers || {}),
+      };
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
+    headers,
     ...options,
   });
 
@@ -263,6 +268,46 @@ export const adminApi = {
       method: "DELETE",
     });
   },
+
+  listBanners({ search = "", status, page = 1, limit = 20 } = {}) {
+    const query = new URLSearchParams();
+    if (search) query.set("search", search);
+    if (status) query.set("status", status);
+    if (page) query.set("page", String(page));
+    if (limit) query.set("limit", String(limit));
+    return request(`/admin/banners?${query.toString()}`);
+  },
+
+  createBanner(formData) {
+    return request("/admin/banners", {
+      method: "POST",
+      body: formData,
+    });
+  },
+
+  getBanner(bannerId) {
+    return request(`/admin/banners/${bannerId}`);
+  },
+
+  updateBanner(bannerId, formData) {
+    return request(`/admin/banners/${bannerId}`, {
+      method: "PUT",
+      body: formData,
+    });
+  },
+
+  updateBannerStatus(bannerId, status) {
+    return request(`/admin/banners/${bannerId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
+  },
+
+  deleteBanner(bannerId) {
+    return request(`/admin/banners/${bannerId}`, {
+      method: "DELETE",
+    });
+  },
 };
 
 export const architectApi = {
@@ -288,6 +333,12 @@ export const contractorApi = {
 
   me() {
     return request("/contractor/me");
+  },
+};
+
+export const websiteApi = {
+  getHomepageBanners() {
+    return request("/banners");
   },
 };
 

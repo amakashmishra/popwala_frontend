@@ -4,26 +4,55 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/i18n/LanguageContext";
-import hero1 from "@/assets/hero-1.jpg";
-import hero2 from "@/assets/hero-2.jpg";
-import hero3 from "@/assets/hero-3.jpg";
+import { websiteApi } from "@/lib/api";
 
 const HeroBanner = () => {
   const [current, setCurrent] = useState(0);
-  const { t } = useLanguage();
-
-  const slides = [
-    { image: hero1, title: t("hero.slide1.title"), subtitle: t("hero.slide1.subtitle"), cta: t("hero.slide1.cta"), link: "/book-visit" },
-    { image: hero2, title: t("hero.slide2.title"), subtitle: t("hero.slide2.subtitle"), cta: t("hero.slide2.cta"), link: "/book-visit" },
-    { image: hero3, title: t("hero.slide3.title"), subtitle: t("hero.slide3.subtitle"), cta: t("hero.slide3.cta"), link: "/gallery" },
-    { image: hero1, title: t("hero.slide4.title"), subtitle: t("hero.slide4.subtitle"), cta: t("hero.slide4.cta"), link: "/benefits" },
-    { image: hero2, title: t("hero.slide5.title"), subtitle: t("hero.slide5.subtitle"), cta: t("hero.slide5.cta"), link: "/book-visit" },
-  ];
+  const [slides, setSlides] = useState([]);
+  const { t, language } = useLanguage();
 
   useEffect(() => {
+    let cancelled = false;
+    const fetchBanners = async () => {
+      try {
+        const data = await websiteApi.getHomepageBanners();
+        const mapped = (data.banners || []).map((banner) => ({
+          image: banner.imageUrl,
+          title: banner.title?.[language] || banner.title?.en || "",
+          subtitle: banner.description?.[language] || banner.description?.en || "",
+          cta: t("hero.cta.bookVisit"),
+          link: "/book-visit",
+        }));
+        if (!cancelled) {
+          setSlides(mapped);
+          setCurrent(0);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setSlides([]);
+        }
+      }
+    };
+
+    fetchBanners();
+    return () => {
+      cancelled = true;
+    };
+  }, [t, language]);
+
+  useEffect(() => {
+    if (slides.length === 0) return undefined;
     const timer = setInterval(() => setCurrent((p) => (p + 1) % slides.length), 5000);
     return () => clearInterval(timer);
   }, [slides.length]);
+
+  if (slides.length === 0) {
+    return (
+      <div className="relative w-full h-screen min-h-[600px] max-h-[900px] overflow-hidden bg-muted flex items-center justify-center">
+        <p className="text-muted-foreground text-sm">No active banners available.</p>
+      </div>
+    );
+  }
 
   const slide = slides[current];
 
