@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { adminApi } from "@/lib/api";
 import { toast } from "@/components/ui/sonner";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 const baseForm = {
   name: "",
@@ -39,6 +40,7 @@ export default function ContractorsPage() {
   const [form, setForm] = useState(baseForm);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setSearch(searchInput.trim()), 300);
@@ -150,19 +152,22 @@ export default function ContractorsPage() {
     }
   };
 
-  const handleDelete = async (id) => {
-    const confirmDelete = window.confirm("Delete this contractor?");
-    if (!confirmDelete) return;
+  const promptDeleteContractor = (contractor) => {
+    setDeleteTarget({ id: contractor.id, label: contractor.name });
+  };
 
-    setDeletingId(id);
+  const confirmDeleteContractor = async () => {
+    if (!deleteTarget) return;
+    setDeletingId(deleteTarget.id);
     try {
-      await adminApi.deleteContractor(id);
+      await adminApi.deleteContractor(deleteTarget.id);
       toast.success("Contractor deleted");
       fetchContractors();
     } catch (error) {
       toast.error(error.message || "Failed to delete contractor");
     } finally {
       setDeletingId("");
+      setDeleteTarget(null);
     }
   };
 
@@ -270,7 +275,7 @@ export default function ContractorsPage() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
-                            onClick={() => handleDelete(contractor.id)}
+                            onClick={() => promptDeleteContractor(contractor)}
                             disabled={deletingId === contractor.id}
                             title="Delete Contractor"
                           >
@@ -385,6 +390,15 @@ export default function ContractorsPage() {
           </div>
         </div>
       ) : null}
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title="Delete this contractor?"
+        description={`Are you sure you want to delete ${deleteTarget?.label || "this contractor"}? This action cannot be undone.`}
+        confirmLabel="Delete"
+        confirmLoading={deletingId === deleteTarget?.id}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDeleteContractor}
+      />
     </div>
   );
 }

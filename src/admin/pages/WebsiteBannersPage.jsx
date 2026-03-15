@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { adminApi } from "@/lib/api";
 import { toast } from "@/components/ui/sonner";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 const initialForm = {
   titleEn: "",
@@ -37,6 +38,7 @@ export default function WebsiteBannersPage() {
   const [previewUrl, setPreviewUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [togglingId, setTogglingId] = useState("");
 
   useEffect(() => {
@@ -174,17 +176,22 @@ export default function WebsiteBannersPage() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this banner?")) return;
-    setDeletingId(id);
+  const promptDeleteBanner = (banner) => {
+    setDeleteTarget({ id: banner.id, label: banner.title?.en || "banner" });
+  };
+
+  const confirmDeleteBanner = async () => {
+    if (!deleteTarget) return;
+    setDeletingId(deleteTarget.id);
     try {
-      await adminApi.deleteBanner(id);
+      await adminApi.deleteBanner(deleteTarget.id);
       toast.success("Banner deleted");
       fetchBanners();
     } catch (error) {
       toast.error(error.message || "Failed to delete banner");
     } finally {
       setDeletingId("");
+      setDeleteTarget(null);
     }
   };
 
@@ -304,7 +311,7 @@ export default function WebsiteBannersPage() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
-                            onClick={() => handleDelete(banner.id)}
+                            onClick={() => promptDeleteBanner(banner)}
                             disabled={deletingId === banner.id}
                             title="Delete Banner"
                           >
@@ -422,6 +429,15 @@ export default function WebsiteBannersPage() {
           </div>
         </div>
       ) : null}
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title="Delete this banner?"
+        description={`Are you sure you want to delete ${deleteTarget?.label || "this banner"}? This action cannot be undone.`}
+        confirmLabel="Delete"
+        confirmLoading={deletingId === deleteTarget?.id}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDeleteBanner}
+      />
     </div>
   );
 }

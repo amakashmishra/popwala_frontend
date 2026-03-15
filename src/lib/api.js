@@ -308,6 +308,108 @@ export const adminApi = {
       method: "DELETE",
     });
   },
+  listTypes({ search = "", status, page = 1, limit = 20 } = {}) {
+    const query = new URLSearchParams();
+    if (search) query.set("search", search);
+    if (status) query.set("status", status);
+    if (page) query.set("page", String(page));
+    if (limit) query.set("limit", String(limit));
+    return request(`/admin/product-types?${query.toString()}`);
+  },
+  createType(payload) {
+    return request("/admin/product-types", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+  getType(typeId) {
+    return request(`/admin/product-types/${typeId}`);
+  },
+  updateType(typeId, payload) {
+    return request(`/admin/product-types/${typeId}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+  },
+  updateTypeStatus(typeId, status) {
+    return request(`/admin/product-types/${typeId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
+  },
+  deleteType(typeId) {
+    return request(`/admin/product-types/${typeId}`, {
+      method: "DELETE",
+    });
+  },
+  listCategories({ search = "", status, page = 1, limit = 20 } = {}) {
+    const query = new URLSearchParams();
+    if (search) query.set("search", search);
+    if (status) query.set("status", status);
+    if (page) query.set("page", String(page));
+    if (limit) query.set("limit", String(limit));
+    return request(`/admin/categories?${query.toString()}`);
+  },
+  createCategory(payload) {
+    return request("/admin/categories", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+  getCategory(categoryId) {
+    return request(`/admin/categories/${categoryId}`);
+  },
+  updateCategory(categoryId, payload) {
+    return request(`/admin/categories/${categoryId}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+  },
+  updateCategoryStatus(categoryId, status) {
+    return request(`/admin/categories/${categoryId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
+  },
+  deleteCategory(categoryId) {
+    return request(`/admin/categories/${categoryId}`, {
+      method: "DELETE",
+    });
+  },
+  listStyles({ search = "", status, page = 1, limit = 20 } = {}) {
+    const query = new URLSearchParams();
+    if (search) query.set("search", search);
+    if (status) query.set("status", status);
+    if (page) query.set("page", String(page));
+    if (limit) query.set("limit", String(limit));
+    return request(`/admin/styles?${query.toString()}`);
+  },
+  createStyle(formData) {
+    return request("/admin/styles", {
+      method: "POST",
+      body: formData,
+    });
+  },
+  getStyle(styleId) {
+    return request(`/admin/styles/${styleId}`);
+  },
+  updateStyle(styleId, formData) {
+    return request(`/admin/styles/${styleId}`, {
+      method: "PUT",
+      body: formData,
+    });
+  },
+  updateStyleStatus(styleId, status) {
+    return request(`/admin/styles/${styleId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
+  },
+  deleteStyle(styleId) {
+    return request(`/admin/styles/${styleId}`, {
+      method: "DELETE",
+    });
+  },
 };
 
 export const architectApi = {
@@ -339,6 +441,15 @@ export const contractorApi = {
 export const websiteApi = {
   getHomepageBanners() {
     return request("/banners");
+  },
+  getTypes() {
+    return request("/catalog/types");
+  },
+  getCategories() {
+    return request("/catalog/categories");
+  },
+  getStyles() {
+    return request("/catalog/styles");
   },
 };
 

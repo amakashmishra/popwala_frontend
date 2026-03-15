@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { adminApi } from "@/lib/api";
 import { toast } from "@/components/ui/sonner";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 const baseForm = {
   name: "",
@@ -39,6 +40,7 @@ export default function ArchitectsPage() {
   const [form, setForm] = useState(baseForm);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setSearch(searchInput.trim()), 300);
@@ -150,19 +152,22 @@ export default function ArchitectsPage() {
     }
   };
 
-  const handleDelete = async (id) => {
-    const confirmDelete = window.confirm("Delete this architect?");
-    if (!confirmDelete) return;
+  const promptDeleteArchitect = (architect) => {
+    setDeleteTarget({ id: architect.id, label: architect.name });
+  };
 
-    setDeletingId(id);
+  const confirmDeleteArchitect = async () => {
+    if (!deleteTarget) return;
+    setDeletingId(deleteTarget.id);
     try {
-      await adminApi.deleteArchitect(id);
+      await adminApi.deleteArchitect(deleteTarget.id);
       toast.success("Architect deleted");
       fetchArchitects();
     } catch (error) {
       toast.error(error.message || "Failed to delete architect");
     } finally {
       setDeletingId("");
+      setDeleteTarget(null);
     }
   };
 
@@ -270,7 +275,7 @@ export default function ArchitectsPage() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
-                            onClick={() => handleDelete(architect.id)}
+                            onClick={() => promptDeleteArchitect(architect)}
                             disabled={deletingId === architect.id}
                             title="Delete Architect"
                           >
@@ -385,6 +390,15 @@ export default function ArchitectsPage() {
           </div>
         </div>
       ) : null}
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title="Delete this architect?"
+        description={`Are you sure you want to delete ${deleteTarget?.label || "this architect"}? This action cannot be undone.`}
+        confirmLabel="Delete"
+        confirmLoading={deletingId === deleteTarget?.id}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDeleteArchitect}
+      />
     </div>
   );
 }

@@ -2,7 +2,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import DesignCard from "@/components/DesignCard";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import catHouse from "@/assets/cat-house.jpg";
 import catHall from "@/assets/cat-hall.jpg";
@@ -11,6 +11,7 @@ import catKitchen from "@/assets/cat-kitchen.jpg";
 import catHotel from "@/assets/cat-hotel.jpg";
 import catOffice from "@/assets/cat-office.jpg";
 import catMall from "@/assets/cat-mall.jpg";
+import { websiteApi } from "@/lib/api";
 
 const allDesigns = [
   { id: "1", image: catHouse, title: "Modern Cove Ceiling", category: "House", style: "Modern", price: "₹45,000", rating: 4.8, type: "POP" },
@@ -31,15 +32,45 @@ const allDesigns = [
   { id: "15", image: catHotel, title: "PVC Premium Laminate", category: "Hotel", style: "Luxury", price: "₹1,80,000", rating: 4.9, type: "PVC" },
 ];
 
-const categories = ["All", "House", "Hall", "Bedroom", "Kitchen", "Hotel", "Office", "Mall"];
-const styles = ["All", "Modern", "Classic", "Luxury"];
-const types = ["All", "POP", "PVC"];
+const defaultCategories = ["House", "Hall", "Bedroom", "Kitchen", "Hotel", "Office", "Mall"];
+const defaultStyles = ["Modern", "Classic", "Luxury"];
+const defaultTypes = ["POP", "PVC"];
 
 const Gallery = () => {
   const [selectedCat, setSelectedCat] = useState("All");
   const [selectedStyle, setSelectedStyle] = useState("All");
   const [selectedType, setSelectedType] = useState("All");
   const { t } = useLanguage();
+  const [catalogs, setCatalogs] = useState({
+    categories: defaultCategories,
+    styles: defaultStyles,
+    types: defaultTypes,
+  });
+
+  useEffect(() => {
+    let active = true;
+    const loadCatalogs = async () => {
+      try {
+        const [typesData, categoriesData, stylesData] = await Promise.all([
+          websiteApi.getTypes(),
+          websiteApi.getCategories(),
+          websiteApi.getStyles(),
+        ]);
+        if (!active) return;
+        setCatalogs({
+          types: typesData.types?.map((type) => type.name).filter(Boolean) || defaultTypes,
+          categories: categoriesData.categories?.map((category) => category.name).filter(Boolean) || defaultCategories,
+          styles: stylesData.styles?.map((style) => style.name).filter(Boolean) || defaultStyles,
+        });
+    } catch (error) {
+      console.error("Failed to load catalog lists", error);
+    }
+    };
+    loadCatalogs();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const filtered = allDesigns.filter(
     (d) =>
@@ -61,7 +92,7 @@ const Gallery = () => {
             <div>
               <span className="text-sm font-medium text-muted-foreground mb-2 block">{t("gallery.type")}</span>
               <div className="flex flex-wrap gap-2">
-                {types.map((tp) => (
+                {["All", ...(catalogs.types || [])].map((tp) => (
                   <Button
                     key={tp}
                     size="sm"
@@ -77,7 +108,7 @@ const Gallery = () => {
             <div>
               <span className="text-sm font-medium text-muted-foreground mb-2 block">{t("gallery.category")}</span>
               <div className="flex flex-wrap gap-2">
-                {categories.map((c) => (
+                {["All", ...(catalogs.categories || [])].map((c) => (
                   <Button
                     key={c}
                     size="sm"
@@ -93,7 +124,7 @@ const Gallery = () => {
             <div>
               <span className="text-sm font-medium text-muted-foreground mb-2 block">{t("gallery.style")}</span>
               <div className="flex flex-wrap gap-2">
-                {styles.map((s) => (
+                {["All", ...(catalogs.styles || [])].map((s) => (
                   <Button
                     key={s}
                     size="sm"
