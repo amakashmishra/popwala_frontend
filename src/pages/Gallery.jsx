@@ -81,7 +81,7 @@ const Gallery = () => {
 
   return (
     <div className="min-h-screen">
-      <Header />
+      <Header hideNavLinks />
       <div className="pt-24 pb-20">
         <div className="container">
           <h1 className="font-display text-3xl md:text-4xl font-bold">{t("gallery.title")}</h1>

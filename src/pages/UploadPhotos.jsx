@@ -26,7 +26,7 @@ const UploadPhotos = () => {
 
   return (
     <div className="min-h-screen">
-      <Header />
+      <Header hideNavLinks />
       <div className="pt-24 pb-20">
         <div className="container max-w-3xl">
           <h1 className="font-display text-3xl font-bold">{t("upload.title")}</h1>

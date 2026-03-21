@@ -87,15 +87,33 @@ const getReply = (input, lang) => {
     <>
       <AnimatePresence>
         {!open && (
-          <motion.button
+          <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0 }}
-            onClick={() => setOpen(true)}
-            className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full gold-gradient shadow-lg flex items-center justify-center text-primary-foreground hover:scale-105 transition-transform"
+            className="fixed bottom-6 right-6 z-50"
           >
-            <MessageCircle className="w-6 h-6" />
-          </motion.button>
+            <motion.span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 rounded-full bg-[hsl(var(--gold))]/30"
+              animate={{ scale: [1, 1.45], opacity: [0.55, 0] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }}
+            />
+            <motion.span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 rounded-full bg-[hsl(var(--gold-light))]/35"
+              animate={{ scale: [1, 1.65], opacity: [0.4, 0] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut", delay: 0.45 }}
+            />
+            <motion.button
+              onClick={() => setOpen(true)}
+              whileHover={{ scale: 1.08, y: -1 }}
+              whileTap={{ scale: 0.96 }}
+              className="relative w-14 h-14 rounded-full gold-gradient shadow-[var(--shadow-gold)] flex items-center justify-center text-primary-foreground"
+            >
+              <MessageCircle className="w-6 h-6" />
+            </motion.button>
+          </motion.div>
         )}
       </AnimatePresence>
 

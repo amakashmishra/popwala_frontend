@@ -125,7 +125,7 @@ const ProjectReport = () => {
 
   return (
     <div className="min-h-screen">
-      <Header />
+      <Header hideNavLinks />
       <div className="pt-24 pb-20">
         <div className="container max-w-4xl">
           <Link to="/dashboard" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">

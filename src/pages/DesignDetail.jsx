@@ -27,7 +27,7 @@ const DesignDetail = () => {
 
   return (
     <div className="min-h-screen">
-      <Header />
+      <Header hideNavLinks />
       <div className="pt-20 pb-20">
         <div className="container max-w-5xl">
           <Link to="/gallery" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">

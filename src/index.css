@@ -209,4 +209,81 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  .live-offers-ticker {
+    @apply relative min-w-0 flex-1 overflow-hidden;
+  }
+
+  .live-offers-track {
+    @apply flex w-max;
+    animation: liveOffersTicker 20s linear infinite;
+    will-change: transform;
+  }
+
+  .live-offers-item {
+    white-space: nowrap;
+  }
+
+  .live-offers-ticker:hover .live-offers-track {
+    animation-play-state: paused;
+  }
+
+  @keyframes liveOffersTicker {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  .services-marquee-wrap {
+    @apply relative overflow-hidden;
+  }
+
+  .services-marquee-track {
+    @apply flex w-max gap-5;
+    animation: servicesMarquee 34s linear infinite;
+    will-change: transform;
+  }
+
+  .services-marquee-wrap:hover .services-marquee-track {
+    animation-play-state: paused;
+  }
+
+  .services-marquee-item {
+    flex: 0 0 clamp(220px, 23vw, 320px);
+  }
+
+  @keyframes servicesMarquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(calc(-50% - 10px));
+    }
+  }
+
+  @media (max-width: 1024px) {
+    .services-marquee-track {
+      @apply gap-4;
+      animation-duration: 30s;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .services-marquee-item {
+      flex-basis: clamp(200px, 72vw, 260px);
+    }
+
+    .services-marquee-track {
+      animation-duration: 24s;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .services-marquee-track {
+      animation: none;
+    }
+  }
 }

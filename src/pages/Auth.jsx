@@ -64,7 +64,7 @@ const Auth = () => {
             setWebUserSession(data.user, true);
           }
           toast.success("Google login successful");
-          navigate("/dashboard", { replace: true });
+          navigate("/home", { replace: true });
         })
         .catch(() => {
           toast.error("Google login finished but session validation failed");
@@ -125,7 +125,7 @@ const Auth = () => {
     }
 
     toast.success("Signed in successfully");
-    navigate("/dashboard");
+    navigate("/home");
   };
 
   const handleForgot = async () => {

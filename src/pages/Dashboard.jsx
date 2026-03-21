@@ -30,7 +30,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen">
-      <Header />
+      <Header hideNavLinks />
       <div className="pt-24 pb-20">
         <div className="container">
           <h1 className="font-display text-3xl font-bold">{t("dashboard.title")}</h1>

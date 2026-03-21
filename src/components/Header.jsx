@@ -1,17 +1,21 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X, User, Globe, Home, LayoutGrid, CalendarCheck, Star, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { languageNames } from "@/i18n/translations";
 
-const Header = () => {
+const Header = ({ hideHome = false, hideNavLinks = false }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { language, setLanguage, t } = useLanguage();
+  const isLoggedIn =
+    Boolean(localStorage.getItem("ceilocraft-user")) ||
+    Boolean(sessionStorage.getItem("ceilocraft-user"));
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -26,6 +30,13 @@ const Header = () => {
     { label: t("nav.benefits"), to: "/benefits", icon: Star },
     { label: t("nav.dashboard"), to: "/dashboard", icon: LayoutDashboard },
   ];
+  const visibleNavLinks = hideHome ? navLinks.filter((link) => link.to !== "/") : navLinks;
+
+  const handleLogout = () => {
+    localStorage.removeItem("ceilocraft-user");
+    sessionStorage.removeItem("ceilocraft-user");
+    navigate("/", { replace: true });
+  };
 
   return (
     <>
@@ -40,21 +51,23 @@ const Header = () => {
             </span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-0.5 bg-muted/60 backdrop-blur-sm rounded-full px-1.5 py-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                  location.pathname === link.to
-                    ? "bg-card text-foreground shadow-[var(--shadow-sm)]"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+          {!hideNavLinks && (
+            <nav className="hidden md:flex items-center gap-0.5 bg-muted/60 backdrop-blur-sm rounded-full px-1.5 py-1">
+              {visibleNavLinks.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                    location.pathname === link.to
+                      ? "bg-card text-foreground shadow-[var(--shadow-sm)]"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          )}
 
           <div className="hidden md:flex items-center gap-2">
             <div className="relative">
@@ -85,12 +98,19 @@ const Header = () => {
                 </motion.div>
               )}
             </div>
-            <Link to="/auth">
-              <Button size="sm" className="gold-btn rounded-full gap-2 px-5">
+            {isLoggedIn ? (
+              <Button size="sm" className="gold-btn rounded-full gap-2 px-5" onClick={handleLogout}>
                 <User className="w-4 h-4" />
-                {t("nav.login")}
+                Logout
               </Button>
-            </Link>
+            ) : (
+              <Link to="/auth">
+                <Button size="sm" className="gold-btn rounded-full gap-2 px-5">
+                  <User className="w-4 h-4" />
+                  {t("nav.login")}
+                </Button>
+              </Link>
+            )}
           </div>
 
           <button
@@ -110,7 +130,7 @@ const Header = () => {
               className="md:hidden border-t border-border/40 bg-card/95 backdrop-blur-xl"
             >
               <div className="container py-4 flex flex-col gap-1">
-                {navLinks.map((link) => (
+                {!hideNavLinks && visibleNavLinks.map((link) => (
                   <Link
                     key={link.to}
                     to={link.to}
@@ -136,12 +156,26 @@ const Header = () => {
                     </button>
                   ))}
                 </div>
-                <Link to="/auth" onClick={() => setMobileOpen(false)}>
-                  <Button size="sm" className="mt-2 w-full gold-btn rounded-xl gap-2">
+                {isLoggedIn ? (
+                  <Button
+                    size="sm"
+                    className="mt-2 w-full gold-btn rounded-xl gap-2"
+                    onClick={() => {
+                      setMobileOpen(false);
+                      handleLogout();
+                    }}
+                  >
                     <User className="w-4 h-4" />
-                    {t("nav.login")}
+                    Logout
                   </Button>
-                </Link>
+                ) : (
+                  <Link to="/auth" onClick={() => setMobileOpen(false)}>
+                    <Button size="sm" className="mt-2 w-full gold-btn rounded-xl gap-2">
+                      <User className="w-4 h-4" />
+                      {t("nav.login")}
+                    </Button>
+                  </Link>
+                )}
               </div>
             </motion.div>
           )}
@@ -149,22 +183,24 @@ const Header = () => {
       </header>
 
       {/* Mobile bottom navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-xl border-t border-border/40 safe-area-bottom">
-        <div className="flex items-center justify-around py-2 pb-[env(safe-area-inset-bottom,8px)]">
-          {navLinks.slice(0, 5).map((link) => (
-            <Link
-              key={link.to}
-              to={link.to}
-              className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors ${
-                location.pathname === link.to ? "text-primary" : "text-muted-foreground"
-              }`}
-            >
-              <link.icon className="w-5 h-5" />
-              <span className="text-[10px] font-medium">{link.label}</span>
-            </Link>
-          ))}
-        </div>
-      </nav>
+      {!hideNavLinks && (
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-xl border-t border-border/40 safe-area-bottom">
+          <div className="flex items-center justify-around py-2 pb-[env(safe-area-inset-bottom,8px)]">
+            {visibleNavLinks.slice(0, 5).map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors ${
+                  location.pathname === link.to ? "text-primary" : "text-muted-foreground"
+                }`}
+              >
+                <link.icon className="w-5 h-5" />
+                <span className="text-[10px] font-medium">{link.label}</span>
+              </Link>
+            ))}
+          </div>
+        </nav>
+      )}
     </>
   );
 };
