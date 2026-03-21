@@ -2,6 +2,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import HeroBanner from "@/components/HeroBanner";
 import ServicesShowcase from "@/components/ServicesShowcase";
+import OffersScroller from "@/components/OffersScroller";
 import CategoryGrid from "@/components/CategoryGrid";
 import FeaturedDesigns from "@/components/FeaturedDesigns";
 import BenefitsSection from "@/components/BenefitsSection";
@@ -18,6 +19,7 @@ const Index = () => (
       transition={{ duration: 0.4, delay: 0.3 }}
     >
       <ServicesShowcase />
+      <OffersScroller />
       <CategoryGrid />
       <FeaturedDesigns />
       <CTASection />

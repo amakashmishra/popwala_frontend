@@ -93,6 +93,7 @@ const App = () => (
               <Route path="product-types" element={<CatalogManager />} />
               <Route path="categories" element={<CatalogManager />} />
               <Route path="styles" element={<CatalogManager />} />
+              <Route path="services" element={<CatalogManager />} />
               <Route path="contractors" element={<ContractorsPage />} />
               <Route path="architects" element={<ArchitectsPage />} />
               <Route path="users" element={<UsersPage />} />

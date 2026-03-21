@@ -4,6 +4,7 @@ import {
   Layers,
   Grid3X3,
   Paintbrush,
+  Wrench,
   Plus,
   Search,
   Pencil,
@@ -67,6 +68,23 @@ const configs = {
       update: adminApi.updateStyle,
       updateStatus: adminApi.updateStyleStatus,
       remove: adminApi.deleteStyle,
+    },
+  },
+  "/admin/services": {
+    title: "Services",
+    description: "Manage services shown on the website",
+    icon: Wrench,
+    resourceName: "Service",
+    itemKey: "service",
+    hasImage: true,
+    listAsTable: true,
+    actions: {
+      list: adminApi.listServices,
+      create: adminApi.createService,
+      get: adminApi.getService,
+      update: adminApi.updateService,
+      updateStatus: adminApi.updateServiceStatus,
+      remove: adminApi.deleteService,
     },
   },
 };
@@ -313,7 +331,7 @@ export default function CatalogManager() {
         </div>
       </div>
 
-      {config.hasImage ? (
+      {config.hasImage && !config.listAsTable ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {loading ? (
             <Card className="col-span-full">
@@ -397,9 +415,12 @@ export default function CatalogManager() {
         <Card>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[640px] text-sm">
+              <table className="w-full min-w-[760px] text-sm">
                 <thead>
                   <tr className="border-b bg-muted/20 text-muted-foreground">
+                    {config.hasImage ? (
+                      <th className="px-4 py-3 text-left font-medium">Image</th>
+                    ) : null}
                     <th className="px-4 py-3 text-left font-medium">Name</th>
                     <th className="px-4 py-3 text-left font-medium">Description</th>
                     <th className="px-4 py-3 text-left font-medium">Status</th>
@@ -410,20 +431,35 @@ export default function CatalogManager() {
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan={5} className="px-4 py-10 text-center text-muted-foreground">
+                      <td colSpan={config.hasImage ? 6 : 5} className="px-4 py-10 text-center text-muted-foreground">
                         <Loader2 className="h-4 w-4 animate-spin inline-block mr-2" />
                         Loading {config.title.toLowerCase()}...
                       </td>
                     </tr>
                   ) : items.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-4 py-10 text-center text-muted-foreground">
+                      <td colSpan={config.hasImage ? 6 : 5} className="px-4 py-10 text-center text-muted-foreground">
                         No {config.title.toLowerCase()} found.
                       </td>
                     </tr>
                   ) : (
                     items.map((item) => (
                       <tr key={item.id} className="border-b last:border-0">
+                        {config.hasImage ? (
+                          <td className="px-4 py-3.5">
+                            {item.imageUrl ? (
+                              <img
+                                src={item.imageUrl}
+                                alt={item.name}
+                                className="h-14 w-28 rounded-md border object-cover"
+                              />
+                            ) : (
+                              <div className="h-14 w-28 rounded-md border border-dashed bg-muted/30 flex items-center justify-center text-muted-foreground text-xs">
+                                No image
+                              </div>
+                            )}
+                          </td>
+                        ) : null}
                         <td className="px-4 py-3.5">
                           <p className="font-medium">{item.name}</p>
                         </td>

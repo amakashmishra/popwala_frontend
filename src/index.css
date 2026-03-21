@@ -242,9 +242,14 @@
   }
 
   .services-marquee-track {
-    @apply flex w-max gap-5;
+    @apply flex w-max gap-4;
     animation: servicesMarquee 34s linear infinite;
     will-change: transform;
+  }
+
+  .services-marquee-static {
+    @apply w-full justify-center;
+    animation: none;
   }
 
   .services-marquee-wrap:hover .services-marquee-track {
@@ -252,7 +257,7 @@
   }
 
   .services-marquee-item {
-    flex: 0 0 clamp(220px, 23vw, 320px);
+    flex: 0 0 clamp(170px, 18vw, 240px);
   }
 
   @keyframes servicesMarquee {
@@ -266,14 +271,14 @@
 
   @media (max-width: 1024px) {
     .services-marquee-track {
-      @apply gap-4;
+      @apply gap-3;
       animation-duration: 30s;
     }
   }
 
   @media (max-width: 640px) {
     .services-marquee-item {
-      flex-basis: clamp(200px, 72vw, 260px);
+      flex-basis: clamp(150px, 60vw, 200px);
     }
 
     .services-marquee-track {

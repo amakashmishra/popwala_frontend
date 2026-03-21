@@ -381,8 +381,8 @@ export default function AdminDashboard() {
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {statsToRender.map((item) => (
-          <StatCard key={item.label} {...item} />
+        {statsToRender.map(({ key, ...cardProps }) => (
+          <StatCard key={key} {...cardProps} />
         ))}
       </div>
 

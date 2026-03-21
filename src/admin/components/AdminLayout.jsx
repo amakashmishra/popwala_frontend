@@ -9,6 +9,7 @@ const mobileNavItems = [
   { label: "Product Types", to: "/admin/product-types" },
   { label: "Categories", to: "/admin/categories" },
   { label: "Styles", to: "/admin/styles" },
+  { label: "Services", to: "/admin/services" },
 ];
 
 export default function AdminLayout() {

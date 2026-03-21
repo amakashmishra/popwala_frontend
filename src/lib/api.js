@@ -422,6 +422,40 @@ export const adminApi = {
       method: "DELETE",
     });
   },
+  listServices({ search = "", status, page = 1, limit = 20 } = {}) {
+    const query = new URLSearchParams();
+    if (search) query.set("search", search);
+    if (status) query.set("status", status);
+    if (page) query.set("page", String(page));
+    if (limit) query.set("limit", String(limit));
+    return request(`/admin/services?${query.toString()}`);
+  },
+  createService(formData) {
+    return request("/admin/services", {
+      method: "POST",
+      body: formData,
+    });
+  },
+  getService(serviceId) {
+    return request(`/admin/services/${serviceId}`);
+  },
+  updateService(serviceId, formData) {
+    return request(`/admin/services/${serviceId}`, {
+      method: "PUT",
+      body: formData,
+    });
+  },
+  updateServiceStatus(serviceId, status) {
+    return request(`/admin/services/${serviceId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
+  },
+  deleteService(serviceId) {
+    return request(`/admin/services/${serviceId}`, {
+      method: "DELETE",
+    });
+  },
 };
 
 export const architectApi = {
@@ -462,6 +496,9 @@ export const websiteApi = {
   },
   getStyles() {
     return request("/catalog/styles");
+  },
+  getServices() {
+    return request("/services");
   },
 };
 
