@@ -308,6 +308,18 @@ export const adminApi = {
       method: "DELETE",
     });
   },
+  listRecentLeads() {
+    return request("/admin/leads/recent");
+  },
+  getDashboardStats(filters = {}) {
+    const query = new URLSearchParams();
+    if (filters.startDate) query.set("startDate", filters.startDate);
+    if (filters.endDate) query.set("endDate", filters.endDate);
+    const path = query.toString()
+      ? `/admin/dashboard/stats?${query.toString()}`
+      : "/admin/dashboard/stats";
+    return request(path);
+  },
   listTypes({ search = "", status, page = 1, limit = 20 } = {}) {
     const query = new URLSearchParams();
     if (search) query.set("search", search);
