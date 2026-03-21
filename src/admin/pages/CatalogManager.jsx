@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import {
-  Layers,
   Grid3X3,
   Paintbrush,
   Wrench,
@@ -11,6 +10,8 @@ import {
   Trash2,
   Loader2,
   Image as ImageIcon,
+  TicketPercent,
+  BadgePercent,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,22 +23,6 @@ import { toast } from "@/components/ui/sonner";
 import ConfirmDialog from "@/components/ConfirmDialog";
 
 const configs = {
-  "/admin/product-types": {
-    title: "Product Types",
-    description: "Define ceiling product classifications",
-    icon: Layers,
-    resourceName: "Product type",
-    itemKey: "type",
-    hasImage: false,
-    actions: {
-      list: adminApi.listTypes,
-      create: adminApi.createType,
-      get: adminApi.getType,
-      update: adminApi.updateType,
-      updateStatus: adminApi.updateTypeStatus,
-      remove: adminApi.deleteType,
-    },
-  },
   "/admin/categories": {
     title: "Categories",
     description: "Room and space categories for designs",
@@ -45,6 +30,7 @@ const configs = {
     resourceName: "Category",
     itemKey: "category",
     hasImage: false,
+    useStandardFields: true,
     actions: {
       list: adminApi.listCategories,
       create: adminApi.createCategory,
@@ -54,13 +40,14 @@ const configs = {
       remove: adminApi.deleteCategory,
     },
   },
-    "/admin/styles": {
-      title: "Styles",
-      description: "Design aesthetic classifications",
-      icon: Paintbrush,
-      resourceName: "Style",
-      itemKey: "style",
-      hasImage: false,
+  "/admin/styles": {
+    title: "Styles",
+    description: "Design aesthetic classifications",
+    icon: Paintbrush,
+    resourceName: "Style",
+    itemKey: "style",
+    hasImage: false,
+    useStandardFields: true,
     actions: {
       list: adminApi.listStyles,
       create: adminApi.createStyle,
@@ -78,6 +65,7 @@ const configs = {
     itemKey: "service",
     hasImage: true,
     listAsTable: true,
+    useStandardFields: true,
     actions: {
       list: adminApi.listServices,
       create: adminApi.createService,
@@ -87,13 +75,72 @@ const configs = {
       remove: adminApi.deleteService,
     },
   },
+  "/admin/popular-deals": {
+    title: "Popular Deals",
+    description: "Manage deals cards shown on the homepage",
+    icon: TicketPercent,
+    resourceName: "Popular Deal",
+    itemKey: "popularDeal",
+    hasImage: true,
+    listAsTable: true,
+    useStandardFields: false,
+    formFields: [
+      { key: "cardTitle", label: "Card Title" },
+      { key: "title", label: "Title", required: true },
+      { key: "subtitleTag", label: "Subtitle / Tag" },
+      { key: "description", label: "Description", type: "textarea" },
+      { key: "buttonText", label: "Button Text" },
+      { key: "redirectUrl", label: "Redirect Link (URL)", type: "url" },
+      { key: "themeColor", label: "Background Color / Theme", type: "color", defaultValue: "#1f7ea7" },
+    ],
+    actions: {
+      list: adminApi.listPopularDeals,
+      create: adminApi.createPopularDeal,
+      get: adminApi.getPopularDeal,
+      update: adminApi.updatePopularDeal,
+      updateStatus: adminApi.updatePopularDealStatus,
+      remove: adminApi.deletePopularDeal,
+    },
+  },
+  "/admin/promotions": {
+    title: "Offers / Promotions",
+    description: "Manage promotional banners for homepage",
+    icon: BadgePercent,
+    resourceName: "Promotion",
+    itemKey: "promotion",
+    hasImage: true,
+    listAsTable: true,
+    useStandardFields: false,
+    formFields: [
+      { key: "title", label: "Title", required: true },
+      { key: "subtitleTag", label: "Subtitle / Tag" },
+      { key: "description", label: "Description", type: "textarea" },
+      { key: "buttonText", label: "Button Text" },
+      { key: "redirectUrl", label: "Redirect Link (URL)", type: "url" },
+      { key: "themeColor", label: "Background Color / Theme", type: "color", defaultValue: "#1f7a61" },
+    ],
+    actions: {
+      list: adminApi.listPromotions,
+      create: adminApi.createPromotion,
+      get: adminApi.getPromotion,
+      update: adminApi.updatePromotion,
+      updateStatus: adminApi.updatePromotionStatus,
+      remove: adminApi.deletePromotion,
+    },
+  },
 };
 
-const defaultForm = {
-  name: "",
-  description: "",
-  status: "active",
-  image: null,
+const buildInitialForm = (config) => {
+  const form = {
+    name: "",
+    description: "",
+    status: "active",
+    image: null,
+  };
+  (config.formFields || []).forEach((field) => {
+    form[field.key] = field.defaultValue || "";
+  });
+  return form;
 };
 
 const statusStyle = {
@@ -103,8 +150,7 @@ const statusStyle = {
 
 export default function CatalogManager() {
   const location = useLocation();
-  const config = configs[location.pathname] || configs["/admin/product-types"];
-  const Icon = config.icon;
+  const config = configs[location.pathname] || configs["/admin/categories"];
   const [items, setItems] = useState([]);
   const [pagination, setPagination] = useState({ total: 0, page: 1, limit: 100 });
   const [loading, setLoading] = useState(true);
@@ -113,7 +159,7 @@ export default function CatalogManager() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [modalMode, setModalMode] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
-  const [form, setForm] = useState(defaultForm);
+  const [form, setForm] = useState(buildInitialForm(config));
   const [previewUrl, setPreviewUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [togglingId, setTogglingId] = useState("");
@@ -126,6 +172,10 @@ export default function CatalogManager() {
     setSearchInput("");
     setItems([]);
     setPagination({ total: 0, page: 1, limit: 100 });
+    setForm(buildInitialForm(config));
+    setPreviewUrl("");
+    setModalMode("");
+    setSelectedItem(null);
   }, [location.pathname]);
 
   useEffect(() => {
@@ -158,9 +208,7 @@ export default function CatalogManager() {
 
   useEffect(() => {
     return () => {
-      if (previewUrl && previewUrl.startsWith("blob:")) {
-        URL.revokeObjectURL(previewUrl);
-      }
+      if (previewUrl && previewUrl.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
     };
   }, [previewUrl]);
 
@@ -173,7 +221,7 @@ export default function CatalogManager() {
   const openCreate = () => {
     setModalMode("create");
     setSelectedItem(null);
-    setForm({ ...defaultForm });
+    setForm(buildInitialForm(config));
     setPreviewUrl("");
   };
 
@@ -181,13 +229,18 @@ export default function CatalogManager() {
     try {
       const data = await config.actions.get(id);
       const record = data[config.itemKey];
-      setSelectedItem(record);
-      setForm({
-        name: record?.name || "",
-        description: record?.description || "",
-        status: record?.status || "active",
-        image: null,
+      const nextForm = buildInitialForm(config);
+      if (config.useStandardFields !== false) {
+        nextForm.name = record?.name || "";
+        nextForm.description = record?.description || "";
+      }
+      (config.formFields || []).forEach((field) => {
+        nextForm[field.key] = record?.[field.key] ?? field.defaultValue ?? "";
       });
+      nextForm.status = record?.status || "active";
+      nextForm.image = null;
+      setSelectedItem(record);
+      setForm(nextForm);
       setPreviewUrl(config.hasImage ? record?.imageUrl || "" : "");
       setModalMode("edit");
     } catch (error) {
@@ -198,39 +251,49 @@ export default function CatalogManager() {
   const closeModal = () => {
     setModalMode("");
     setSelectedItem(null);
-    setForm({ ...defaultForm });
+    setForm(buildInitialForm(config));
     setPreviewUrl("");
   };
 
   const handleImageChange = (file) => {
     setForm((prev) => ({ ...prev, image: file || null }));
-    if (previewUrl && previewUrl.startsWith("blob:")) {
-      URL.revokeObjectURL(previewUrl);
-    }
+    if (previewUrl && previewUrl.startsWith("blob:")) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(file ? URL.createObjectURL(file) : selectedItem?.imageUrl || "");
   };
 
   const buildPayload = () => {
     if (config.hasImage) {
-      const fields = new FormData();
-      fields.append("name", form.name.trim());
-      fields.append("description", form.description);
-      fields.append("status", form.status);
-      if (form.image) {
-        fields.append("image", form.image);
+      const payload = new FormData();
+      if (config.useStandardFields !== false) {
+        payload.append("name", form.name.trim());
+        payload.append("description", form.description || "");
       }
-      return fields;
+      (config.formFields || []).forEach((field) => payload.append(field.key, form[field.key] || ""));
+      payload.append("status", form.status);
+      if (form.image) payload.append("image", form.image);
+      return payload;
     }
-    return {
-      name: form.name.trim(),
-      description: form.description,
-      status: form.status,
-    };
+    const payload = { status: form.status };
+    if (config.useStandardFields !== false) {
+      payload.name = form.name.trim();
+      payload.description = form.description || "";
+    }
+    (config.formFields || []).forEach((field) => {
+      payload[field.key] = form[field.key] || "";
+    });
+    return payload;
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!form.name.trim()) {
+    const requiredCustomField = (config.formFields || []).find(
+      (field) => field.required && !String(form[field.key] || "").trim()
+    );
+    if (requiredCustomField) {
+      toast.error(`${requiredCustomField.label} is required`);
+      return;
+    }
+    if (config.useStandardFields !== false && !form.name.trim()) {
       toast.error(`${resourceLabel} name is required`);
       return;
     }
@@ -268,7 +331,7 @@ export default function CatalogManager() {
   };
 
   const promptDelete = (item) => {
-    setDeleteTarget({ id: item.id, label: item.name });
+    setDeleteTarget({ id: item.id, label: item.title || item.name });
   };
 
   const confirmDelete = async () => {
@@ -331,201 +394,100 @@ export default function CatalogManager() {
         </div>
       </div>
 
-      {config.hasImage && !config.listAsTable ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {loading ? (
-            <Card className="col-span-full">
-              <CardContent className="text-center text-muted-foreground">
-                <Loader2 className="animate-spin h-4 w-4 inline-block mr-2" />
-                Loading {config.title.toLowerCase()}...
-              </CardContent>
-            </Card>
-          ) : items.length === 0 ? (
-            <Card className="col-span-full">
-              <CardContent className="text-muted-foreground text-center">No {config.title.toLowerCase()} found.</CardContent>
-            </Card>
-          ) : (
-            items.map((item) => (
-              <Card key={item.id} className="overflow-hidden">
-                <div className="aspect-[3/1] bg-muted flex items-center justify-center">
-                  {config.hasImage && item.imageUrl ? (
-                    <img src={item.imageUrl} alt={item.name} className="object-cover h-full w-full" />
-                  ) : (
-                    <Icon className="h-6 w-6 text-muted-foreground/40" />
-                  )}
-                </div>
-                <CardContent className="p-4 space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <h3 className="text-sm font-semibold">{item.name}</h3>
-                      <p className="text-xs text-muted-foreground mt-0.5">{item.description || "No description"}</p>
-                    </div>
-                    <Badge
-                      variant="outline"
-                      className={statusStyle[item.status] || statusStyle.inactive}
-                    >
-                      {item.status}
-                    </Badge>
-                  </div>
-                  <div className="flex gap-1.5">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => openEdit(item.id)}
-                    >
-                      <Pencil className="h-3 w-3 mr-1" />
-                      Edit
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-xs h-9 px-2"
-                      onClick={() => handleToggleStatus(item)}
-                      disabled={togglingId === item.id}
-                    >
-                      {togglingId === item.id ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      ) : item.status === "active" ? (
-                        "Deactivate"
-                      ) : (
-                        "Activate"
-                      )}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-9 px-2 text-destructive"
-                      onClick={() => promptDelete(item)}
-                      disabled={deletingId === item.id}
-                    >
-                      {deletingId === item.id ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        <Trash2 className="h-3 w-3" />
-                      )}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </div>
-      ) : (
-        <Card>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px] text-sm">
-                <thead>
-                  <tr className="border-b bg-muted/20 text-muted-foreground">
-                    {config.hasImage ? (
-                      <th className="px-4 py-3 text-left font-medium">Image</th>
-                    ) : null}
-                    <th className="px-4 py-3 text-left font-medium">Name</th>
-                    <th className="px-4 py-3 text-left font-medium">Description</th>
-                    <th className="px-4 py-3 text-left font-medium">Status</th>
-                    <th className="px-4 py-3 text-left font-medium">Created</th>
-                    <th className="px-4 py-3 text-right font-medium">Actions</th>
+      <Card>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[760px] text-sm">
+              <thead>
+                <tr className="border-b bg-muted/20 text-muted-foreground">
+                  {config.hasImage ? <th className="px-4 py-3 text-left font-medium">Image</th> : null}
+                  <th className="px-4 py-3 text-left font-medium">{config.useStandardFields !== false ? "Name" : "Title"}</th>
+                  <th className="px-4 py-3 text-left font-medium">Description</th>
+                  <th className="px-4 py-3 text-left font-medium">Status</th>
+                  <th className="px-4 py-3 text-left font-medium">Created</th>
+                  <th className="px-4 py-3 text-right font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={config.hasImage ? 6 : 5} className="px-4 py-10 text-center text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin inline-block mr-2" />
+                      Loading {config.title.toLowerCase()}...
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {loading ? (
-                    <tr>
-                      <td colSpan={config.hasImage ? 6 : 5} className="px-4 py-10 text-center text-muted-foreground">
-                        <Loader2 className="h-4 w-4 animate-spin inline-block mr-2" />
-                        Loading {config.title.toLowerCase()}...
-                      </td>
-                    </tr>
-                  ) : items.length === 0 ? (
-                    <tr>
-                      <td colSpan={config.hasImage ? 6 : 5} className="px-4 py-10 text-center text-muted-foreground">
-                        No {config.title.toLowerCase()} found.
-                      </td>
-                    </tr>
-                  ) : (
-                    items.map((item) => (
-                      <tr key={item.id} className="border-b last:border-0">
-                        {config.hasImage ? (
-                          <td className="px-4 py-3.5">
-                            {item.imageUrl ? (
-                              <img
-                                src={item.imageUrl}
-                                alt={item.name}
-                                className="h-14 w-28 rounded-md border object-cover"
-                              />
-                            ) : (
-                              <div className="h-14 w-28 rounded-md border border-dashed bg-muted/30 flex items-center justify-center text-muted-foreground text-xs">
-                                No image
-                              </div>
-                            )}
-                          </td>
-                        ) : null}
+                ) : items.length === 0 ? (
+                  <tr>
+                    <td colSpan={config.hasImage ? 6 : 5} className="px-4 py-10 text-center text-muted-foreground">
+                      No {config.title.toLowerCase()} found.
+                    </td>
+                  </tr>
+                ) : (
+                  items.map((item) => (
+                    <tr key={item.id} className="border-b last:border-0">
+                      {config.hasImage ? (
                         <td className="px-4 py-3.5">
-                          <p className="font-medium">{item.name}</p>
+                          {item.imageUrl ? (
+                            <img src={item.imageUrl} alt={item.title || item.name} className="h-14 w-28 rounded-md border object-cover" />
+                          ) : (
+                            <div className="h-14 w-28 rounded-md border border-dashed bg-muted/30 flex items-center justify-center text-muted-foreground text-xs">
+                              No image
+                            </div>
+                          )}
                         </td>
-                        <td className="px-4 py-3.5 text-muted-foreground">
-                          {item.description || "-"}
-                        </td>
-                        <td className="px-4 py-3.5">
-                          <Badge
+                      ) : null}
+                      <td className="px-4 py-3.5">
+                        <p className="font-medium">{item.title || item.name}</p>
+                        {item.subtitleTag ? <p className="text-xs text-muted-foreground mt-0.5">{item.subtitleTag}</p> : null}
+                      </td>
+                      <td className="px-4 py-3.5 text-muted-foreground">{item.description || "-"}</td>
+                      <td className="px-4 py-3.5">
+                        <Badge variant="outline" className={statusStyle[item.status] || statusStyle.inactive}>
+                          {item.status}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3.5">{formatDate(item.createdAt)}</td>
+                      <td className="px-4 py-3.5">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(item.id)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
                             variant="outline"
-                            className={statusStyle[item.status] || statusStyle.inactive}
+                            size="sm"
+                            className="text-xs h-9 px-2"
+                            onClick={() => handleToggleStatus(item)}
+                            disabled={togglingId === item.id}
                           >
-                            {item.status}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3.5">{formatDate(item.createdAt)}</td>
-                        <td className="px-4 py-3.5">
-                          <div className="flex items-center justify-end gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => openEdit(item.id)}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-xs h-9 px-2"
-                              onClick={() => handleToggleStatus(item)}
-                              disabled={togglingId === item.id}
-                            >
-                              {togglingId === item.id ? (
-                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              ) : item.status === "active" ? (
-                                "Deactivate"
-                              ) : (
-                                "Activate"
-                              )}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-destructive"
-                              onClick={() => promptDelete(item)}
-                              disabled={deletingId === item.id}
-                            >
-                              {deletingId === item.id ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <Trash2 className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                            {togglingId === item.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : item.status === "active" ? (
+                              "Deactivate"
+                            ) : (
+                              "Activate"
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive"
+                            onClick={() => promptDelete(item)}
+                            disabled={deletingId === item.id}
+                          >
+                            {deletingId === item.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
 
-      {modalMode && (
+      {modalMode ? (
         <div className="fixed inset-0 z-50 bg-black/45 backdrop-blur-sm flex items-stretch justify-end">
           <div className="h-full w-full max-w-2xl border-l bg-card shadow-2xl flex flex-col">
             <div className="p-5 border-b">
@@ -535,7 +497,7 @@ export default function CatalogManager() {
             </div>
             <div className="flex-1 overflow-y-auto p-5">
               <form className="space-y-4" onSubmit={handleSubmit}>
-                {config.hasImage && (
+                {config.hasImage ? (
                   <div>
                     <Label className="text-xs">Image (optional)</Label>
                     <Input
@@ -545,11 +507,7 @@ export default function CatalogManager() {
                       onChange={(event) => handleImageChange(event.target.files?.[0] || null)}
                     />
                     {previewUrl ? (
-                      <img
-                        src={previewUrl}
-                        alt="Preview"
-                        className="mt-2 h-40 w-full rounded-md border object-cover"
-                      />
+                      <img src={previewUrl} alt="Preview" className="mt-2 h-40 w-full rounded-md border object-cover" />
                     ) : (
                       <div className="mt-2 h-40 w-full rounded-md border border-dashed bg-muted/30 flex items-center justify-center text-muted-foreground">
                         <ImageIcon className="h-5 w-5 mr-2" />
@@ -557,24 +515,52 @@ export default function CatalogManager() {
                       </div>
                     )}
                   </div>
-                )}
-                <div>
-                  <Label className="text-xs">Name</Label>
-                  <Input
-                    value={form.name}
-                    onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
-                    className="mt-1.5"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Description</Label>
-                  <textarea
-                    value={form.description}
-                    onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
-                    className="mt-1.5 w-full min-h-[120px] rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  />
-                </div>
+                ) : null}
+
+                {config.useStandardFields !== false ? (
+                  <>
+                    <div>
+                      <Label className="text-xs">Name</Label>
+                      <Input
+                        value={form.name}
+                        onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
+                        className="mt-1.5"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Description</Label>
+                      <textarea
+                        value={form.description}
+                        onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
+                        className="mt-1.5 w-full min-h-[110px] rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      />
+                    </div>
+                  </>
+                ) : null}
+
+                {(config.formFields || []).map((field) => (
+                  <div key={field.key}>
+                    <Label className="text-xs">{field.label}</Label>
+                    {field.type === "textarea" ? (
+                      <textarea
+                        value={form[field.key] || ""}
+                        onChange={(event) => setForm((prev) => ({ ...prev, [field.key]: event.target.value }))}
+                        className="mt-1.5 w-full min-h-[110px] rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        required={Boolean(field.required)}
+                      />
+                    ) : (
+                      <Input
+                        type={field.type || "text"}
+                        value={form[field.key] || ""}
+                        onChange={(event) => setForm((prev) => ({ ...prev, [field.key]: event.target.value }))}
+                        className="mt-1.5"
+                        required={Boolean(field.required)}
+                      />
+                    )}
+                  </div>
+                ))}
+
                 <div>
                   <Label className="text-xs">Status</Label>
                   <select
@@ -588,12 +574,10 @@ export default function CatalogManager() {
                 </div>
                 <div className="flex gap-2">
                   <Button type="submit" disabled={submitting}>
-                    {submitting ? (
-                      <Loader2 className="h-4 w-4 animate-spin inline-block -ml-1 mr-1" />
-                    ) : null}
+                    {submitting ? <Loader2 className="h-4 w-4 animate-spin inline-block -ml-1 mr-1" /> : null}
                     {modalMode === "create" ? `Create ${resourceLabel}` : `Save ${resourceLabel}`}
                   </Button>
-                  <Button variant="outline" onClick={closeModal}>
+                  <Button variant="outline" type="button" onClick={closeModal}>
                     Cancel
                   </Button>
                 </div>
@@ -601,7 +585,8 @@ export default function CatalogManager() {
             </div>
           </div>
         </div>
-      )}
+      ) : null}
+
       <ConfirmDialog
         open={Boolean(deleteTarget)}
         title={`Delete this ${resourceLabel}?`}
@@ -625,3 +610,4 @@ function formatDate(value) {
     year: "numeric",
   });
 }
+

@@ -6,10 +6,11 @@ import { NavLink } from "@/components/NavLink";
 const mobileNavItems = [
   { label: "Dashboard", to: "/admin" },
   { label: "Designs", to: "/admin/designs" },
-  { label: "Product Types", to: "/admin/product-types" },
   { label: "Categories", to: "/admin/categories" },
   { label: "Styles", to: "/admin/styles" },
   { label: "Services", to: "/admin/services" },
+  { label: "Popular Deals", to: "/admin/popular-deals" },
+  { label: "Promotions", to: "/admin/promotions" },
 ];
 
 export default function AdminLayout() {

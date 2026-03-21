@@ -90,10 +90,11 @@ const App = () => (
               <Route index element={<AdminDashboard />} />
               <Route path="designs" element={<DesignList />} />
               <Route path="designs/new" element={<DesignForm />} />
-              <Route path="product-types" element={<CatalogManager />} />
               <Route path="categories" element={<CatalogManager />} />
               <Route path="styles" element={<CatalogManager />} />
               <Route path="services" element={<CatalogManager />} />
+              <Route path="popular-deals" element={<CatalogManager />} />
+              <Route path="promotions" element={<CatalogManager />} />
               <Route path="contractors" element={<ContractorsPage />} />
               <Route path="architects" element={<ArchitectsPage />} />
               <Route path="users" element={<UsersPage />} />

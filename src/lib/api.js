@@ -354,6 +354,74 @@ export const adminApi = {
       method: "DELETE",
     });
   },
+  listPopularDeals({ search = "", status, page = 1, limit = 20 } = {}) {
+    const query = new URLSearchParams();
+    if (search) query.set("search", search);
+    if (status) query.set("status", status);
+    if (page) query.set("page", String(page));
+    if (limit) query.set("limit", String(limit));
+    return request(`/admin/popular-deals?${query.toString()}`);
+  },
+  createPopularDeal(formData) {
+    return request("/admin/popular-deals", {
+      method: "POST",
+      body: formData,
+    });
+  },
+  getPopularDeal(id) {
+    return request(`/admin/popular-deals/${id}`);
+  },
+  updatePopularDeal(id, formData) {
+    return request(`/admin/popular-deals/${id}`, {
+      method: "PUT",
+      body: formData,
+    });
+  },
+  updatePopularDealStatus(id, status) {
+    return request(`/admin/popular-deals/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
+  },
+  deletePopularDeal(id) {
+    return request(`/admin/popular-deals/${id}`, {
+      method: "DELETE",
+    });
+  },
+  listPromotions({ search = "", status, page = 1, limit = 20 } = {}) {
+    const query = new URLSearchParams();
+    if (search) query.set("search", search);
+    if (status) query.set("status", status);
+    if (page) query.set("page", String(page));
+    if (limit) query.set("limit", String(limit));
+    return request(`/admin/promotions?${query.toString()}`);
+  },
+  createPromotion(formData) {
+    return request("/admin/promotions", {
+      method: "POST",
+      body: formData,
+    });
+  },
+  getPromotion(id) {
+    return request(`/admin/promotions/${id}`);
+  },
+  updatePromotion(id, formData) {
+    return request(`/admin/promotions/${id}`, {
+      method: "PUT",
+      body: formData,
+    });
+  },
+  updatePromotionStatus(id, status) {
+    return request(`/admin/promotions/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
+  },
+  deletePromotion(id) {
+    return request(`/admin/promotions/${id}`, {
+      method: "DELETE",
+    });
+  },
   listCategories({ search = "", status, page = 1, limit = 20 } = {}) {
     const query = new URLSearchParams();
     if (search) query.set("search", search);
@@ -499,6 +567,12 @@ export const websiteApi = {
   },
   getServices() {
     return request("/services");
+  },
+  getPopularDeals() {
+    return request("/marketing/popular-deals");
+  },
+  getPromotions() {
+    return request("/marketing/promotions");
   },
 };
 
